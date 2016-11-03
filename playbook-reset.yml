@@ -1,0 +1,5 @@
+---
+- hosts: [role_master, role_minion]
+  become: yes
+  roles:
+    - kubeadm-reset

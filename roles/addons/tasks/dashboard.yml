@@ -1,0 +1,22 @@
+---
+- name: check if dashboard is installed
+  command: kubectl --namespace kube-system describe deploy kubernetes-dashboard
+  register: check
+  changed_when: False
+  failed_when: False
+
+- file: path=/home/devops/addons/dashboard state=directory
+  become: no
+
+- name: logging templates
+  become: no
+  template: src="dashboard/{{ item }}" dest="/home/devops/addons/dashboard/{{ item }}"
+  with_items:
+    - dashboard-controller.yaml
+    - dashboard-service.yaml
+  register: templates
+
+- name: install logging
+  command: kubectl apply -f "/home/devops/addons/dashboard/{{ item.item }}"
+  when: check.rc != 0 or item.changed
+  with_items: '{{templates.results}}'

@@ -1,0 +1,55 @@
+---
+- name: generate kubeadm token
+  command: kubeadm token generate
+  register: token
+
+- name: write token to file on master
+  copy: content="{{ token.stdout }}" dest="/etc/kubernetes/join-token" owner=root mode=0600
+
+- debug: msg="token={{ token.stdout }}"
+
+- name: start kubelet
+  service: name=kubelet enabled=yes state=started
+
+- name: call kubeadm init
+  async: 360
+  poll: 0
+  command: kubeadm init --token {{ token.stdout }} --service-cidr {{ service_cidr }} --cloud-provider azure
+  environment:
+    KUBE_HYPERKUBE_IMAGE: "{{ hyperkube_image }}"
+  register: async_init
+
+#################
+# Following addition of args may be not required when kubeadm adds the possibility to control these flags
+# After adding the additional args, we need to wait for the apiserver/controller-manager pods to restart
+
+- set_fact:
+    apiserver_args: '"--anonymous-auth=false",'
+
+- set_fact:
+    controller_manager_args: '"--allocate-node-cidrs", "--cluster-cidr={{ cluster_cidr }}",'
+
+# We have to do the "kubeadm init" asynchrounusly as it is not able to finish before we add the additional args to the controller manager
+# Otherwise the controller manager is not able to assign cidrs
+- name: wait for controller manager manifest to appear
+  wait_for: path=/etc/kubernetes/manifests/kube-controller-manager.json
+
+- name: add additional args to controller manager
+  lineinfile:
+    dest: /etc/kubernetes/manifests/kube-controller-manager.json
+    insertafter: '^\s*\"--v='
+    line: '{{controller_manager_args}}'
+  register: reg_controller_manager_args
+
+- name: add additional args to apiserver
+  lineinfile:
+    dest: /etc/kubernetes/manifests/kube-apiserver.json
+    insertafter: '^\s*\"--v='
+    line: '{{apiserver_args}}'
+  register: reg_apiserver_args
+
+- name: wait for kubeadm init to finish
+  async_status: jid={{ async_init.ansible_job_id }}
+  register: job_result
+  until: job_result.finished
+  retries: 300

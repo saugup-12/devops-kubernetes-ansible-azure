@@ -1,0 +1,52 @@
+azure_subscription_id: "{{lookup('env','AZURE_SUBSCRIPTION_ID')}}"
+azure_resource_group: "{{lookup('env','AZURE_RESOURCE_GROUP')}}"
+
+apiVersion: "2015-06-15"
+
+virtualNetworkName: "KubVNET"
+
+subnetAdminName: "SubnetADMIN"
+subnetMastersName: "SubnetMASTERS"
+subnetMinionsName: "SubnetMINIONS"
+
+routeTableName: "routetable"
+securityGroupName: "secgroup"
+
+nameSuffix: k8s
+
+availabilitySetMasters: "avs-ma-{{nameSuffix}}"
+availabilitySetMinions: "avs-mi-{{nameSuffix}}"
+
+faultDomainCount: 3
+updateDomainCount: 10
+
+bastionVmSize: Standard_A0
+bastionVMName: bastion
+bastionIPAddressName: pubip-bastion
+
+mastersVmSize: Standard_A2
+mastersDataDiskSize: 1000
+mastersCount: 1
+
+minionsVmSize: Standard_A2
+minionsDataDiskSize: 1000
+minionsCount: 4
+
+
+adminUserName: devops
+adminPassword: "{{azure_admin_password}}"
+disablePasswordAuthentication: true
+
+sshKeyPath: "/home/{{adminUserName}}/.ssh/authorized_keys"
+sshKeyData: "{{azure_ssh_pubkey}}"
+
+imageReference:
+  publisher: "OpenLogic"
+  offer: "CentOS"
+  sku: "7.2"
+  version: "latest"
+imageReferenceJson: "{{imageReference|to_json}}"
+
+storageAccountName: "skjdhf2h353kj45"
+storageAccountType: "Standard_LRS"
+

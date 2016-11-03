@@ -1,0 +1,10 @@
+---
+- name: check if weave-net is installed
+  command: kubectl --namespace kube-system describe ds weave-net
+  register: check
+  changed_when: False
+  failed_when: False
+
+- name: install weave-net
+  command: kubectl apply -f https://git.io/weave-kube
+  when: check.rc != 0

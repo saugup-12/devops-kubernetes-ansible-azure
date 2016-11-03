@@ -1,0 +1,20 @@
+---
+- name: add kubernetes YUM repository
+  yum_repository:
+    name: kubernetes
+    description: kubernetes repository
+    baseurl: http://yum.kubernetes.io/repos/kubernetes-el7-x86_64
+    gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+
+- name: install kubernetes packages
+  package: name={{ item }} state=present
+  with_items:
+    - kubelet
+    - kubeadm
+    - kubectl
+    - kubernetes-cni
+  register: packages
+
+- name: systemctl daemon reload
+  command: systemctl daemon-reload
+  when: packages.changed

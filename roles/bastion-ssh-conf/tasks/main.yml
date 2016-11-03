@@ -1,0 +1,8 @@
+---
+- set_fact:
+    bastion_ip: "{{ hostvars[groups['role_bastion'][0]]['ansible_host'] }}"
+
+- debug: msg="bastion_ip={{bastion_ip}}"
+
+- name: create ssh bastion conf
+  template: src=ssh-bastion.conf dest="{{playbook_dir}}/ssh-bastion.conf"

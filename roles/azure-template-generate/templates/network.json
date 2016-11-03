@@ -1,0 +1,76 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+  },
+  "variables": {
+  },
+  "resources": [
+    {
+      "apiVersion": "{{apiVersion}}",
+      "type": "Microsoft.Network/routeTables",
+      "name": "{{routeTableName}}",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "routes": [
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "{{virtualNetworkName}}",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "{{apiVersion}}",
+      "dependsOn": [
+        "[concat('Microsoft.Network/routeTables/', '{{routeTableName}}')]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "{{azure_vnet_cidr}}"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "{{subnetMastersName}}",
+            "properties": {
+              "addressPrefix": "{{azure_masters_cidr}}",
+              "routeTable": {
+                "id": "[resourceId('Microsoft.Network/routeTables', '{{routeTableName}}')]"
+              }
+            }
+          },
+          {
+            "name": "{{subnetMinionsName}}",
+            "properties": {
+              "addressPrefix": "{{azure_minions_cidr}}",
+              "routeTable": {
+                "id": "[resourceId('Microsoft.Network/routeTables', '{{routeTableName}}')]"
+              }
+            }
+          },
+          {
+            "name": "{{subnetAdminName}}",
+            "properties": {
+              "addressPrefix": "{{azure_admin_cidr}}",
+              "routeTable": {
+                "id": "[resourceId('Microsoft.Network/routeTables', '{{routeTableName}}')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "{{apiVersion}}",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "{{securityGroupName}}",
+      "location": "[resourceGroup().location]",
+      "properties": {
+          "securityRules": []
+      },
+      "resources": [],
+      "dependsOn": []
+    }
+  ]
+}

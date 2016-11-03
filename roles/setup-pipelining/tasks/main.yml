@@ -1,0 +1,6 @@
+---
+# Remove requiretty to make ssh pipelining work (maybe not required for Ansible 2.2)
+- set_fact:
+    ansible_ssh_pipelining: False
+- name: Remove require tty
+  lineinfile: regexp="^\w+\s+requiretty" dest=/etc/sudoers state=absent

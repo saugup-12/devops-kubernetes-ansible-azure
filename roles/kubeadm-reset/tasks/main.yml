@@ -1,0 +1,17 @@
+---
+- name: call kubeadm reset
+  command: kubeadm reset
+
+- name: make sure kubelet is not running
+  service: name=kubelet state=stopped
+
+- name: delete some files
+  file: path={{ item }} state=absent
+  with_items:
+    - /etc/kubernetes/cloud-config.json
+    - /etc/kubernetes/join-token
+    - /etc/systemd/system/kubelet.service.d/20-kubeadm-extra-args.conf
+    - /var/lib/kubelet
+
+- name: delete addons
+  file: path=/home/devops/addons state=absent

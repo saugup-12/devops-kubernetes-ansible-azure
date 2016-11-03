@@ -1,0 +1,13 @@
+{
+  "tenantId": "{{ lookup('env','AZURE_TENANT') }}",
+  "subscriptionId": "{{ lookup('env','AZURE_SUBSCRIPTION_ID') }}",
+  "aadClientId": "{{ lookup('env','AZURE_CLIENT_ID') }}",
+  "aadClientSecret": "{{ lookup('env','AZURE_SECRET') }}",
+  "resourceGroup": "{{ lookup('env','AZURE_RESOURCE_GROUP') }}",
+  "location": "{{ lookup('env','AZURE_LOCATION') }}",
+
+  "securityGroupName": "secgroup",
+  "vnetName": "KubVNET",
+  "subnetName": "SubnetMINIONS",
+  "routeTableName": "routetable"
+}

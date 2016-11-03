@@ -1,0 +1,102 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+  },
+  "variables": {
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', '{{virtualNetworkName}}')]",
+    "kubeMinionsSubnetRef": "[concat(variables('vnetID'),'/subnets/', '{{subnetMinionsName}}')]"
+  },
+  "resources": [
+    {% for i in range(minionsCount) %}
+    {
+      "apiVersion": "{{apiVersion}}",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat('minionsNic', '{{i}}')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "MinionsIpConfig",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('kubeMinionsSubnetRef')]"
+              }
+            }
+          }
+        ],
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', '{{securityGroupName}}')]"
+        },
+        "enableIPForwarding": true
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat('mi-', '{{nameSuffix}}', '{{i}}')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', 'minionsNic', '{{i}}')]"
+      ],
+      "tags": {
+        "role": "minion"
+      },
+      "apiVersion": "{{apiVersion}}",
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', '{{availabilitySetMinions}}')]"
+        },
+        "hardwareProfile": {
+          "vmSize": "{{minionsVmSize}}"
+        },
+        "osProfile": {
+          "computerName": "[concat('mi-', '{{nameSuffix}}', '{{i}}')]",
+          "adminUsername": "{{adminUserName}}",
+          "adminPassword": "{{adminPassword}}",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": "{{disablePasswordAuthentication}}",
+            "ssh": {
+              "publicKeys": [
+                {
+                  "path": "{{sshKeyPath}}",
+                  "keyData": "{{sshKeyData}}"
+                }
+              ]
+            }
+          }
+        },
+        "storageProfile": {
+          "imageReference": {{imageReferenceJson}},
+          "osDisk": {
+            "name": "[concat('mi','{{nameSuffix}}', '{{i}}')]",
+            "vhd": {
+              "uri": "[concat('http://','{{storageAccountName}}','.blob.core.windows.net/vhds/','mi-','{{nameSuffix}}', '{{i}}','.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "name": "datadisk1",
+              "diskSizeGB": "{{minionsDataDiskSize}}",
+              "lun": 0,
+              "vhd": {
+                "uri": "[concat('http://', '{{storageAccountName}}','.blob.core.windows.net/vhds/', 'mi-','{{nameSuffix}}', '{{i}}', 'datadisk1.vhd')]"
+              },
+              "createOption": "Empty"
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat('minionsNic','{{i}}'))]"
+            }
+          ]
+        }
+      }
+    } {% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}

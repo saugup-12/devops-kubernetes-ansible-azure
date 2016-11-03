@@ -1,0 +1,202 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+  },
+  "variables": {
+    "lbDomainName": "[concat('lb-', '{{nameSuffix}}')]",
+    "lbPublicIPAddressName": "lbPublicIP",
+    "lbPublicIPAddressType": "Dynamic",
+    "lbPublicIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('lbPublicIPAddressName'))]",
+    "lbName": "lb-api",
+    "lbID": "[resourceId('Microsoft.Network/loadBalancers',variables('lbName'))]",
+    "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontend')]",
+
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', '{{virtualNetworkName}}')]",
+    "kubeMastersSubnetRef": "[concat(variables('vnetID'),'/subnets/', '{{subnetMastersName}}')]"
+  },
+  "resources": [
+    {
+      "apiVersion": "{{apiVersion}}",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('lbPublicIPAddressName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIPAllocationMethod": "[variables('lbPublicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[variables('lbDomainName')]"
+        }
+      }
+    },
+    {
+      "apiVersion": "{{apiVersion}}",
+      "name": "[variables('lbName')]",
+      "type": "Microsoft.Network/loadBalancers",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('lbPublicIPAddressName'))]"
+      ],
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "LoadBalancerFrontend",
+            "properties": {
+              "publicIPAddress": {
+                "id": "[variables('lbPublicIPAddressID')]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "LoadBalancerBackend"
+          }
+        ]
+      }
+    },
+    {% for i in range(mastersCount) %}
+    {
+      "apiVersion": "{{apiVersion}}",
+      "type": "Microsoft.Network/loadBalancers/inboundNatRules",
+      "name": "[concat(variables('lbName'), '/', 'HTTP-80-', '{{ i }}')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', variables('lbName'))]"
+      ],
+      "properties": {
+        "frontendIPConfiguration": {
+          "id": "[variables('frontEndIPConfigID')]"
+        },
+        "protocol": "tcp",
+        "frontendPort": "80",
+        "backendPort": 80,
+        "enableFloatingIP": false
+      }
+    },
+    {
+      "apiVersion": "{{apiVersion}}",
+      "type": "Microsoft.Network/loadBalancers/inboundNatRules",
+      "name": "[concat(variables('lbName'), '/', 'HTTPS-6443-', '{{i}}')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', variables('lbName'))]"
+      ],
+      "properties": {
+        "frontendIPConfiguration": {
+          "id": "[variables('frontEndIPConfigID')]"
+        },
+        "protocol": "tcp",
+        "frontendPort": "443",
+        "backendPort": 6443,
+        "enableFloatingIP": false
+      }
+    },
+    {
+      "apiVersion": "{{apiVersion}}",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat('mastersNic', '{{i}}')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', variables('lbName'))]",
+        "[concat('Microsoft.Network/loadBalancers/', variables('lbName'), '/inboundNatRules/', 'HTTP-80-', '{{i}}')]",
+        "[concat('Microsoft.Network/loadBalancers/', variables('lbName'), '/inboundNatRules/', 'HTTPS-6443-', '{{i}}')]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "MastersIpConfig",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('kubeMastersSubnetRef')]"
+              },
+	          "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[concat(variables('lbID'), '/backendAddressPools/LoadBalancerBackend')]"
+                }
+              ],
+              "loadBalancerInboundNatRules": [
+                {
+                  "id": "[concat(variables('lbID'),'/inboundNatRules/HTTP-80-', '{{i}}')]",
+                  "id": "[concat(variables('lbID'),'/inboundNatRules/HTTPS-6443-', '{{i}}')]"
+                }
+              ]
+            }
+          }
+        ],
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', '{{securityGroupName}}')]"
+        },
+        "enableIPForwarding": true
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat('ma-', '{{nameSuffix}}', '{{i}}')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', 'mastersNic', '{{i}}')]"
+      ],
+      "tags": {
+        "role": "master"
+      },
+      "apiVersion": "{{apiVersion}}",
+      "properties": {
+        "availabilitySet": {
+          // please see README.md why this is currently set to availabilitySetMinions instead of availabilitySetMasters
+          //"id": "[resourceId('Microsoft.Compute/availabilitySets', '{{availabilitySetMasters}}')]"
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', '{{availabilitySetMinions}}')]"
+        },
+        "hardwareProfile": {
+          "vmSize": "{{mastersVmSize}}"
+        },
+        "osProfile": {
+          "computerName": "[concat('ma-', '{{nameSuffix}}', '{{i}}')]",
+          "adminUsername": "{{adminUserName}}",
+          "adminPassword": "{{adminPassword}}",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": "{{disablePasswordAuthentication}}",
+            "ssh": {
+              "publicKeys": [
+                {
+                  "path": "{{sshKeyPath}}",
+                  "keyData": "{{sshKeyData}}"
+                }
+              ]
+            }
+          }
+        },
+        "storageProfile": {
+          "imageReference": {{imageReferenceJson}},
+          "osDisk": {
+            "name": "[concat('ma','{{nameSuffix}}', '{{i}}')]",
+            "vhd": {
+              "uri": "[concat('http://','{{storageAccountName}}','.blob.core.windows.net/vhds/','ma-','{{nameSuffix}}', '{{i}}','.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "name": "datadisk1",
+              "diskSizeGB": "{{mastersDataDiskSize}}",
+              "lun": 0,
+              "vhd": {
+                "uri": "[concat('http://', '{{storageAccountName}}','.blob.core.windows.net/vhds/', 'ma-','{{nameSuffix}}', '{{i}}', 'datadisk1.vhd')]"
+              },
+              "createOption": "Empty"
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat('mastersNic','{{i}}'))]"
+            }
+          ]
+        }
+      }
+    } {% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}

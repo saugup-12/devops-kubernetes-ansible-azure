@@ -1,0 +1,36 @@
+---
+# Place for kubernetes binaries when built with "make"
+# We prefer this place
+- local_action: stat path="{{local_kubernetes_src}}/_output/bin/"
+  become: no
+  register: s1
+
+# Place for kubernetes binaries when built with "make release" or "make release-skip-tests"
+- local_action: stat path="{{local_kubernetes_src}}/_output/dockerized/bin/linux/amd64/"
+  become: no
+  register: s2
+
+- fail: msg="Local kubernetes build not found"
+  when: not s1.stat.exists and not s2.stat.exists
+
+- set_fact:
+    local_kubernetes_bin: "{{local_kubernetes_src}}/_output/bin"
+  when: s1.stat.exists
+
+- set_fact:
+    local_kubernetes_bin: "{{local_kubernetes_src}}/_output/dockerized/bin/linux/amd64"
+  when: s2.stat.exists and not s1.stat.exists
+
+- name: copy local kubelet build to remote hosts
+  copy: src="{{local_kubernetes_bin}}/kubelet" dest=/usr/bin/ owner=root mode=755
+  register: copy_kubelet
+
+- name: copy other local kubernetes builds to remote hosts
+  copy: src={{ item }} dest=/usr/bin/ owner=root mode=755
+  with_items:
+    - "{{local_kubernetes_bin}}/kubectl"
+    - "{{local_kubernetes_bin}}/kubeadm"
+
+- name: restart kubelet
+  service: name=kubelet state=restarted
+  when: copy_kubelet.changed

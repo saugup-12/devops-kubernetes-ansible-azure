@@ -1,0 +1,6 @@
+- stat: path=/etc/kubernetes/kubelet.conf
+  register: st
+
+- include: kubeadm-join.yml
+  when: not st.stat.exists
+

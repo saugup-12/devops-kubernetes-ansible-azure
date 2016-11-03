@@ -1,0 +1,31 @@
+---
+- name: add docker YUM repository
+  yum_repository:
+    name: docker
+    description: docker repository
+    baseurl: https://yum.dockerproject.org/repo/main/centos/7/
+    gpgkey: https://yum.dockerproject.org/gpg
+
+- name: install docker-engine
+  yum: name=docker-engine-{{docker_version}} state=present
+  register: docker_installed
+
+- name: ensure /etc/systemd/system/docker.service.d/ exists
+  file: path=/etc/systemd/system/docker.service.d state=directory owner=root
+
+- name: install docker dropins
+  template: src={{ item }} dest="/etc/systemd/system/docker.service.d/{{ item }}"
+  with_items:
+    - 10-docker-args.conf
+    - 20-mount-flags.conf
+  register: docker_dropins
+
+- name: systemctl daemon-reload
+  command: systemctl daemon-reload
+  when: docker_dropins.changed
+
+- name: enable/start docker-engine unit
+  service: name=docker enabled=yes state=started
+
+- name: add devops user to docker group
+  user: name=devops groups=docker append=yes

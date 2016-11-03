@@ -1,0 +1,25 @@
+---
+- name: check if logging is installed
+  command: kubectl --namespace kube-system describe ds fluentd-elasticsearch
+  register: check
+  changed_when: False
+  failed_when: False
+
+- file: path=/home/devops/addons/fluentd-elasticsearch state=directory
+  become: no
+
+- name: logging templates
+  become: no
+  template: src="fluentd-elasticsearch/{{ item }}" dest="/home/devops/addons/fluentd-elasticsearch/{{ item }}"
+  with_items:
+    - fluentd-es-ds.yaml
+    - es-controller.yaml
+    - es-service.yaml
+    - kibana-controller.yaml
+    - kibana-service.yaml
+  register: templates
+
+- name: install logging
+  command: kubectl apply -f "/home/devops/addons/fluentd-elasticsearch/{{ item.item }}"
+  when: check.rc != 0 or item.changed
+  with_items: '{{templates.results}}'

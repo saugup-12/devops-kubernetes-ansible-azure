@@ -1,0 +1,13 @@
+- fail: msg="Azure credentials are missing. Did you create a azure_creds.env file and source it?"
+  when: lookup('env', '{{ item }}') == ""
+  with_items:
+    - AZURE_SUBSCRIPTION_ID
+    - AZURE_CLIENT_ID
+    - AZURE_SECRET
+    - AZURE_TENANT
+
+- name: create /etc/kubernetes if required
+  file: path=/etc/kubernetes state=directory mode=0755
+
+- name: create cloud config
+  template: src=cloud-config.json dest=/etc/kubernetes/cloud-config.json owner=root group=root mode=0600

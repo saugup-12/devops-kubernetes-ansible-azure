@@ -1,0 +1,40 @@
+---
+- hosts: localhost
+  gather_facts: False
+  roles:
+    - bastion-ssh-conf
+
+- hosts: all
+  become: yes
+  gather_facts: False
+  roles:
+    - setup-pipelining
+
+- name: install kubernetes and docker packages/binaries
+  hosts: [role_master, role_minion]
+  become: yes
+  roles:
+    - docker
+    - kubernetes-install
+    - kubernetes-local-build
+    - kubeadm-cloud-provider-config
+    - kubeadm-kubelet-args
+
+- name: kubeadm-init
+  hosts: role_master
+  become: yes
+  roles:
+    - kubeadm-init
+
+- name: kubeadm-join
+  hosts: role_minion
+  become: yes
+  roles:
+    - kubeadm-join
+
+- name: addons
+  hosts: role_master[0]
+  become: yes
+  roles:
+    - addons
+

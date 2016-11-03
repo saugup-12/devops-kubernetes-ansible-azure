@@ -1,0 +1,25 @@
+---
+- name: check if monitoring is installed
+  command: kubectl --namespace kube-system describe deploy heapster-v1.1.0
+  register: check
+  changed_when: False
+  failed_when: False
+
+- file: path=/home/devops/addons/cluster-monitoring-influxdb state=directory
+  become: no
+
+- name: monitoring templates
+  become: no
+  template: src="cluster-monitoring-influxdb/{{ item }}" dest="/home/devops/addons/cluster-monitoring-influxdb/{{ item }}"
+  with_items:
+    - grafana-service.yaml
+    - heapster-controller.yaml
+    - heapster-service.yaml
+    - influxdb-grafana-controller.yaml
+    - influxdb-service.yaml
+  register: templates
+
+- name: install monitoring
+  command: kubectl apply -f "/home/devops/addons/cluster-monitoring-influxdb/{{ item.item }}"
+  when: check.rc != 0 or item.changed
+  with_items: '{{templates.results}}'

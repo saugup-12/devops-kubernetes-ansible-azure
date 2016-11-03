@@ -1,0 +1,20 @@
+---
+#- name: read token
+
+- set_fact:
+    first_master: "{{ hostvars[groups['role_master'][0]]['ansible_host'] }}"
+
+- name: read token from first master
+  command: cat /etc/kubernetes/join-token
+  delegate_to: "{{ first_master }}"
+  register: join_token
+
+- debug: msg="token={{join_token.stdout}}"
+
+- name: start kubelet
+  service: name=kubelet enabled=yes state=started
+
+- name: call kubeadm join
+  command: kubeadm join --token {{ join_token.stdout }} {{ first_master }}
+  environment:
+    KUBE_HYPERKUBE_IMAGE: "{{ hyperkube_image }}"

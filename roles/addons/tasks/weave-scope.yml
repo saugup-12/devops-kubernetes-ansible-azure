@@ -1,0 +1,10 @@
+---
+- name: check if weave-scope is installed
+  command: kubectl --namespace kube-system describe deploy weavescope-app
+  register: check
+  changed_when: False
+  failed_when: False
+
+- name: install weave-scope
+  command: kubectl --namespace=kube-system apply -f https://cloud.weave.works/launch/k8s/weavescope.yaml
+  when: check.rc != 0

@@ -1,0 +1,16 @@
+hyperkube_image: ablock/hyperkube-amd64:1.5-azure-2
+local_kubernetes_src: "{{playbook_dir}}/../kubernetes"
+
+# Azure CIDRs
+azure_vnet_cidr: 10.0.0.0/8
+azure_admin_cidr: 10.241.2.0/24
+azure_masters_cidr: 10.0.4.0/24
+azure_minions_cidr: 10.240.0.0/16
+
+# Kubernetes CIDRs
+cluster_cidr: 10.244.0.0/16
+service_cidr: 100.64.0.0/12
+cluster_dns: 100.64.0.10
+
+azure_admin_password: "x2cli&mC&$I$"
+azure_ssh_pubkey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDLRzcxbsFDdEibiyXCSdIFh7bKbXso1NqlKjEyPTptf3aBXHEhVil0lJRjGpTlpfTy7PHvXFbXIOCdv9tOmeH1uxWDDeZawgPFV6VSZ1QneCL+8bxzhjiCn8133wBSPZkN8rbFKd9eEUUBfx8ipCblYblF9FcidylwtMt5TeEmXk8yRVkPiCuEYuDplhc2H0f4PsK3pFb5aDVdaDT3VeIypnOQZZoUxHWqm6ThyHrzLJd3SrZf+RROFWW1uInIDf/SZlXojczUYoffxgT1lERfOJCHJXsqbZWugbxQBwqsVsX59+KPxFFo6nV88h3UQr63wbFx52/MXkX4WrCkAHzN ablock-vwfs@dell-lappy"
