@@ -67,7 +67,22 @@
       "name": "{{securityGroupName}}",
       "location": "[resourceGroup().location]",
       "properties": {
-          "securityRules": []
+          "securityRules": [
+            {
+              "name": "kube-api",
+              "properties": {
+                "description": "Allow secure kube-api",
+                "protocol": "Tcp",
+                "sourcePortRange": "*",
+                "destinationPortRange": "6443",
+                "sourceAddressPrefix": "Internet",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 101,
+                "direction": "Inbound"
+              }
+            }
+          ]
       },
       "resources": [],
       "dependsOn": []

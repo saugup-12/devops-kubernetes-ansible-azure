@@ -1,0 +1,6 @@
+[Unit]
+Description=Mount /var/lib/docker
+[Mount]
+What={{device}}1
+Where=/var/lib/docker
+Type={{fs_type}}

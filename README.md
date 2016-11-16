@@ -6,13 +6,15 @@ The target of this project is to deploy and maintain a Kubernetes Cluster on Azu
 ## Why not use any of the existing solutions?
 I found multiple solutions to deploy Kubernetes to different cloud providers, including Azure. Some were outdated or incomplete, some were too complicated in my humble opinion. The too complicated ones predate the release of "kubeadm". kubeadm seems to become the standard in cluster deployment and makes deployment a lot easier, especially when it comes to certificate management.
 
+Also, I prefer a solution were I have full overview and control about what happens. I want to see the logs while stuff is installed and initialized. This means that solutions which put responsibility for all this onto the VM (like only deploying a script which then downloads, installs and configures everything) were not viable candidates for me. Setting up and running a Kubernetes cluster has shown too often that things can go wrong and that debugging and intervention is required, something that is a lot simpler when Ansible is used.
+
 ## Getting started
 Setting up a Kubernetes cluster with this Ansible project consists of multiple steps. 
 
 1. First, you have to create an Azure Resource Group inside of your Azure subscription. Please read through the Azure docs or contact your Azure administrator for this.
 2. You need an Azure Service Principal Account and appropriate credentials for the SP. Please read through https://azure.microsoft.com/en-us/documentation/articles/resource-group-create-service-principal-portal/ to figure out how to create one. The SP is used to setup the Azure resources with Azure Resource Templates and is also later used by the Kubernetes Cloud Provider to modify resources as needed (e.g. Routing Table entries, Load Balancers, ...)
 3. Please make a copy of azure_creds.env.example, name it azure_creds.env and put your SP credentials into this file. You will also need to add the resource group name and resource location.
-4. Please edit group_vars/all to include your custom admin password and your own ssh public key. Please also make sure the private key is known to the SSH Agent. I will probably automate this part later.
+4. Please edit group_vars/all to include your custom admin password and your own ssh public key. Please also make sure the private key is known to the SSH Agent. I will probably automate this part later. You also have to choose a globally unique cluster name in "cluster_name"
 5. Before executing anything from this Ansible project, you'll have to source in the Azure credentials:
     ```
     # source ./azure_creds.env
@@ -33,6 +35,24 @@ Setting up a Kubernetes cluster with this Ansible project consists of multiple s
     ```
     # ./clear-rg.sh
     ```
+
+## Accessing the API and UI after the cluster is running
+An Azure Load Balancer is set up to accept API connections and can be reached through the domain: <cluster_name>-api.<resource_location>.cloudapp.azure.com
+As anonymous auth is disabled, you can not directly access the UI. You'll have to use the kubectl proxy to access the UI (and other services) with a valid kubectl config. The deploy playbook (and thus ./deploy.sh) will copy/create this config in ./kubeconfigs/<cluster_name>/admin.conf. You should set the KUBECONFIG environment variable to use this config:
+```
+# export KUBECONFIG=$(pwd)/kubeconfigs/<cluster_name>/admin.conf
+```
+An example export command line is printed at the end of ./deploy.sh execution. You can now use kubectl as you are used to. To start the kubectl proxy, call:
+```
+# kubectl proxy
+Starting to serve on 127.0.0.1:8001
+```
+You can now access the cluster addons though these URLs:
+Kibana: http://localhost:8001/api/v1/proxy/namespaces/kube-system/services/kibana-logging
+kubernetes-dashboard: http://localhost:8001/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard
+Grafana: http://localhost:8001/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana
+
+Please not that it may take some time until all addons are ready after cluster startup. There are a lot of container images which need to be fetched...
 
 ## Kubernetes 1.5 and local Kubernetes build 
 At the time of the initial version of this project, Kubernetes 1.5. was not released yet. But as latest Azure fixes and features (e.g. Dynamic Disk Provisioning) and kubeadm features+fixes were only merged into the current master branch, I had to use a custom built version of Kubernetes.
@@ -68,6 +88,7 @@ As you can not directly SSH into the masters and nodes, you'll have to use the s
 # ssh -A -F ssh-bastion.conf devops@10.0.4.4
 ```
 The flag "-A" can be useful if you want to ssh into another node while you are already on the master for example.
+
 ## Cluster scaling
 Cluster scaling is currently not implemented. You could of course change the minionsCount variable in roles/azure-template-generate/defaults/main.yml and re-run ./apply-rg.sh and ./deploy.sh, but I'm not a big fan of this. Especially when it comes to downscaling, I really don't like the idea that I'd have no control about which node gets removed. My long term goal is to implement roles and scripts to add and remove groups of nodes to/from the cluster.
 

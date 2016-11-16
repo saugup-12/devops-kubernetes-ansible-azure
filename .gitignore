@@ -3,3 +3,4 @@ azure_creds.env
 ssh-bastion.conf
 ansible-callback-plugins/human_log.pyc
 generated-templates
+kubeconfigs

@@ -20,8 +20,11 @@
     {
       "apiVersion": "{{apiVersion}}",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "bastionNic",
+      "name": "{{bastionVMName}}-nic",
       "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', '{{bastionIPAddressName}}')]"
+      ],
       "properties": {
         "ipConfigurations": [
           {
@@ -45,8 +48,7 @@
       "name": "{{bastionVMName}}",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Network/networkInterfaces/', 'bastionNic')]",
-        "[concat('Microsoft.Network/publicIPAddresses/', '{{bastionIPAddressName}}')]"
+        "[concat('Microsoft.Network/networkInterfaces/', '{{bastionVMName}}-nic')]"
       ],
       "tags": {
         "role": "bastion"
@@ -85,7 +87,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', 'bastionNic')]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', '{{bastionVMName}}-nic')]"
             }
           ]
         }

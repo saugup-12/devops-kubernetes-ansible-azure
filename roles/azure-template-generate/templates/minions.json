@@ -12,7 +12,7 @@
     {
       "apiVersion": "{{apiVersion}}",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat('minionsNic', '{{i}}')]",
+      "name": "mi-{{nameSuffix}}-{{i}}-nic",
       "location": "[resourceGroup().location]",
       "properties": {
         "ipConfigurations": [
@@ -34,10 +34,10 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat('mi-', '{{nameSuffix}}', '{{i}}')]",
+      "name": "mi-{{nameSuffix}}-{{i}}",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Network/networkInterfaces/', 'minionsNic', '{{i}}')]"
+        "[concat('Microsoft.Network/networkInterfaces/', 'mi-{{nameSuffix}}-{{i}}-nic')]"
       ],
       "tags": {
         "role": "minion"
@@ -51,7 +51,7 @@
           "vmSize": "{{minionsVmSize}}"
         },
         "osProfile": {
-          "computerName": "[concat('mi-', '{{nameSuffix}}', '{{i}}')]",
+          "computerName": "mi-{{nameSuffix}}-{{i}}",
           "adminUsername": "{{adminUserName}}",
           "adminPassword": "{{adminPassword}}",
           "linuxConfiguration": {
@@ -69,9 +69,9 @@
         "storageProfile": {
           "imageReference": {{imageReferenceJson}},
           "osDisk": {
-            "name": "[concat('mi','{{nameSuffix}}', '{{i}}')]",
+            "name": "mi{{nameSuffix}}{{i}}",
             "vhd": {
-              "uri": "[concat('http://','{{storageAccountName}}','.blob.core.windows.net/vhds/','mi-','{{nameSuffix}}', '{{i}}','.vhd')]"
+              "uri": "[concat('http://','{{storageAccountName}}','.blob.core.windows.net/vhds/mi-{{nameSuffix}}-{{i}}.vhd')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
@@ -82,7 +82,7 @@
               "diskSizeGB": "{{minionsDataDiskSize}}",
               "lun": 0,
               "vhd": {
-                "uri": "[concat('http://', '{{storageAccountName}}','.blob.core.windows.net/vhds/', 'mi-','{{nameSuffix}}', '{{i}}', 'datadisk1.vhd')]"
+                "uri": "[concat('http://', '{{storageAccountName}}','.blob.core.windows.net/vhds/mi-{{nameSuffix}}-{{i}}-datadisk1.vhd')]"
               },
               "createOption": "Empty"
             }
@@ -91,7 +91,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat('minionsNic','{{i}}'))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', 'mi-{{nameSuffix}}-{{i}}-nic')]"
             }
           ]
         }

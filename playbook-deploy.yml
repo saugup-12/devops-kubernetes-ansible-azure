@@ -14,6 +14,7 @@
   hosts: [role_master, role_minion]
   become: yes
   roles:
+    - docker-storage
     - docker
     - kubernetes-install
     - kubernetes-local-build
@@ -38,3 +39,8 @@
   roles:
     - addons
 
+- name: copy kubeconfig
+  hosts: role_master[0]
+  become: yes
+  roles:
+    - local-kubeconfig

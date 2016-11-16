@@ -1,0 +1,16 @@
+- local_action: file path="{{playbook_dir}}/kubeconfigs/{{cluster_name}}/" state=directory recurse=yes
+  become: no
+
+- name: copy config for kubectl
+  fetch: src=/etc/kubernetes/admin.conf dest="{{playbook_dir}}/kubeconfigs/{{cluster_name}}/" flat=yes
+
+- name: replace server address with DNS name
+  become: no
+  delegate_to: localhost
+  lineinfile:
+    dest: '{{playbook_dir}}/kubeconfigs/{{cluster_name}}/admin.conf'
+    regexp: '^(\s*)server: https://.*'
+    line: '\1server: https://{{cluster_api_dns}}'
+    backrefs: yes
+
+- debug: msg="Use \"export KUBECONFIG=\"{{playbook_dir}}/kubeconfigs/{{cluster_name}}/admin.conf\" to use the config"

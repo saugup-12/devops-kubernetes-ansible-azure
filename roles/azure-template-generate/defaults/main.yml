@@ -12,7 +12,7 @@ subnetMinionsName: "SubnetMINIONS"
 routeTableName: "routetable"
 securityGroupName: "secgroup"
 
-nameSuffix: k8s
+nameSuffix: "{{cluster_name}}"
 
 availabilitySetMasters: "avs-ma-{{nameSuffix}}"
 availabilitySetMinions: "avs-mi-{{nameSuffix}}"
@@ -22,7 +22,7 @@ updateDomainCount: 10
 
 bastionVmSize: Standard_A0
 bastionVMName: bastion
-bastionIPAddressName: pubip-bastion
+bastionIPAddressName: bastion-pubip
 
 mastersVmSize: Standard_A2
 mastersDataDiskSize: 1000
@@ -47,6 +47,6 @@ imageReference:
   version: "latest"
 imageReferenceJson: "{{imageReference|to_json}}"
 
-storageAccountName: "skjdhf2h353kj45"
+storageAccountName: "sa{{cluster_name | replace('-', '')}}"
 storageAccountType: "Standard_LRS"
 

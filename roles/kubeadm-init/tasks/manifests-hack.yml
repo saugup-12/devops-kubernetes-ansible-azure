@@ -1,0 +1,25 @@
+- name: "delete SSL volumes from {{manifest_file}}"
+  shell: |
+    set -e
+    cat /etc/kubernetes/manifests/{{manifest_file}} | \
+      jq "del(.spec.containers[].volumeMounts[] | select(.name==\"certs\"))" | \
+      jq "del(.spec.volumes[] | select(.name==\"certs\"))" > /tmp/{{manifest_file}}
+
+- name: "add additional args to {{manifest_file}}"
+  shell: |
+    set -e
+    cat /tmp/{{manifest_file}} | \
+      jq ". | del(.spec.containers[].command[] | select(. == \"{{item}}\"))" |
+      jq ". | .spec.containers[].command |= (.+ [\"{{item}}\"])" > /tmp/{{manifest_file}}_
+    mv /tmp/{{manifest_file}}_ /tmp/{{manifest_file}}
+  with_items: "{{cmd_args}}"
+
+- name: "copy back {{manifest_file}} if changed"
+  shell: |
+    if ! cmp --silent /etc/kubernetes/manifests/{{manifest_file}} /tmp/{{manifest_file}}; then
+      cp /tmp/{{manifest_file}} /etc/kubernetes/manifests/{{manifest_file}}
+      echo __changed__
+    fi
+    rm /tmp/{{manifest_file}}
+  changed_when: "'__changed__' in r.stdout"
+  register: r

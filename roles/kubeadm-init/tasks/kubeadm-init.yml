@@ -1,4 +1,11 @@
 ---
+# Only needed for the manifest hacks below
+- name: install jq
+  get_url:
+    url: https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
+    dest: /usr/bin/jq
+    mode: 0755
+
 - name: generate kubeadm token
   command: kubeadm token generate
   register: token
@@ -11,42 +18,42 @@
 - name: start kubelet
   service: name=kubelet enabled=yes state=started
 
+# Only set --api-external-dns-names when cluster_api_dns variable is set
+- set_fact:
+    api_external_dns_names: ""
+- set_fact:
+    api_external_dns_names: "--api-external-dns-names {{ cluster_api_dns }}"
+  when: cluster_api_dns != ""
+
 - name: call kubeadm init
   async: 360
   poll: 0
-  command: kubeadm init --token {{ token.stdout }} --service-cidr {{ service_cidr }} --cloud-provider azure
+  command: kubeadm init --token {{ token.stdout }} --service-cidr {{ service_cidr }} {{ api_external_dns_names }} --cloud-provider azure
   environment:
     KUBE_HYPERKUBE_IMAGE: "{{ hyperkube_image }}"
+    KUBE_COMPONENT_LOGLEVEL: "{{ kube_component_loglevel }}"
   register: async_init
 
 #################
-# Following addition of args may be not required when kubeadm adds the possibility to control these flags
-# After adding the additional args, we need to wait for the apiserver/controller-manager pods to restart
-
-- set_fact:
-    apiserver_args: '"--anonymous-auth=false",'
-
-- set_fact:
-    controller_manager_args: '"--allocate-node-cidrs", "--cluster-cidr={{ cluster_cidr }}",'
+# Following manifest changes/hacks may not be required when kubeadm fixes https://github.com/kubernetes/kubernetes/issues/36150 and
+# allow to specify custom arguments to the apiserver and controller-manager
 
 # We have to do the "kubeadm init" asynchrounusly as it is not able to finish before we add the additional args to the controller manager
 # Otherwise the controller manager is not able to assign cidrs
 - name: wait for controller manager manifest to appear
   wait_for: path=/etc/kubernetes/manifests/kube-controller-manager.json
 
-- name: add additional args to controller manager
-  lineinfile:
-    dest: /etc/kubernetes/manifests/kube-controller-manager.json
-    insertafter: '^\s*\"--v='
-    line: '{{controller_manager_args}}'
-  register: reg_controller_manager_args
-
-- name: add additional args to apiserver
-  lineinfile:
-    dest: /etc/kubernetes/manifests/kube-apiserver.json
-    insertafter: '^\s*\"--v='
-    line: '{{apiserver_args}}'
-  register: reg_apiserver_args
+- include: manifests-hack.yml
+  vars:
+    manifest_file: "kube-apiserver.json"
+    cmd_args:
+      - "--anonymous-auth=false"
+- include: manifests-hack.yml
+  vars:
+    manifest_file: "kube-controller-manager.json"
+    cmd_args:
+      - "--allocate-node-cidrs"
+      - "--cluster-cidr={{ cluster_cidr }}"
 
 - name: wait for kubeadm init to finish
   async_status: jid={{ async_init.ansible_job_id }}
