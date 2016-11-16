@@ -72,6 +72,7 @@ The Azure cloud provider as found in 1.5. (as of writing, not released yet) is f
 
 ## Addons
 The Ansible role "addons" installs some common addons that I thought may be useful. The manifests found in the template directory are copied from the Kubernetes repository.
+
 1. cluster-monitoring
 2. dashboard
 3. fluentd-elasticsearch
@@ -99,6 +100,7 @@ High Availability (HA) is currently not implemented. Even if you change the mast
 
 ### kubeadm flags for kubelet, apiserver and controller-manager
 Currently it is not possible to pass custom flags to the kubelet, apiserver and controller-manager. There are multiple open issues in the Kubernetes repo and hopefully this gets adressed soon. Until then, I use a custom solution which injects the needed flags into the services.
+
 1. For the kubelet, I add a systemd dropin with custom flags. These flags are mainly used to correctly pass the cloud provider to the kubelet and to setup networking modes compatible with the Azure cloud provider.
 2. For the apiserver and controller-manager, I inject custom flags into their manifests directly after "kubeadm init" generates them. This solution relies on the kubelet to immediately restart/recreate the PODs of the apiserver and controller-manager.    
 
