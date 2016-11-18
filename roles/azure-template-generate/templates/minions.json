@@ -74,19 +74,9 @@
               "uri": "[concat('http://','{{storageAccountName}}','.blob.core.windows.net/vhds/mi-{{nameSuffix}}-{{i}}.vhd')]"
             },
             "caching": "ReadWrite",
-            "createOption": "FromImage"
-          },
-          "dataDisks": [
-            {
-              "name": "datadisk1",
-              "diskSizeGB": "{{minionsDataDiskSize}}",
-              "lun": 0,
-              "vhd": {
-                "uri": "[concat('http://', '{{storageAccountName}}','.blob.core.windows.net/vhds/mi-{{nameSuffix}}-{{i}}-datadisk1.vhd')]"
-              },
-              "createOption": "Empty"
-            }
-          ]
+            "createOption": "FromImage",
+            "diskSizeGB": "{{minionsOsDiskSize}}"
+          }
         },
         "networkProfile": {
           "networkInterfaces": [

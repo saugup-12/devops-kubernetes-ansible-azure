@@ -5,17 +5,17 @@ apiVersion: "2015-06-15"
 
 virtualNetworkName: "KubVNET"
 
-subnetAdminName: "SubnetADMIN"
-subnetMastersName: "SubnetMASTERS"
-subnetMinionsName: "SubnetMINIONS"
+subnetAdminName: "ad-subnet"
+subnetMastersName: "ma-subnet"
+subnetMinionsName: "mi-subnet"
 
 routeTableName: "routetable"
 securityGroupName: "secgroup"
 
 nameSuffix: "{{cluster_name}}"
 
-availabilitySetMasters: "avs-ma-{{nameSuffix}}"
-availabilitySetMinions: "avs-mi-{{nameSuffix}}"
+availabilitySetMasters: "ma-avs"
+availabilitySetMinions: "mi-avs"
 
 faultDomainCount: 3
 updateDomainCount: 10
@@ -25,11 +25,11 @@ bastionVMName: bastion
 bastionIPAddressName: bastion-pubip
 
 mastersVmSize: Standard_A2
-mastersDataDiskSize: 1000
+mastersOsDiskSize: 1000
 mastersCount: 1
 
 minionsVmSize: Standard_A2
-minionsDataDiskSize: 1000
+minionsOsDiskSize: 1000
 minionsCount: 4
 
 

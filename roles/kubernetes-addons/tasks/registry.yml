@@ -1,0 +1,24 @@
+---
+- name: check if registry is installed
+  command: kubectl --namespace kube-system describe rc kube-registry-v0
+  register: check
+  changed_when: False
+  failed_when: False
+
+- file: path=/home/devops/addons/registry state=directory
+  become: no
+
+- name: registry templates
+  become: no
+  template: src="registry/{{ item }}" dest="/home/devops/addons/registry/{{ item }}"
+  with_items:
+    - registry-pvc.yaml
+    - registry-rc.yaml
+    - registry-svc.yaml
+    - registry-proxy-ds.yaml
+  register: templates
+
+- name: install registry
+  command: kubectl apply -f "/home/devops/addons/registry/{{ item.item }}"
+  when: check.rc != 0 or item.changed
+  with_items: '{{templates.results}}'

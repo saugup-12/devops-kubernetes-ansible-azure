@@ -1,0 +1,21 @@
+---
+- name: check if storage class is created already
+  command: kubectl --namespace kube-system describe storageclass slow
+  register: check
+  changed_when: False
+  failed_when: False
+
+- file: path=/home/devops/addons/storage-classes state=directory
+  become: no
+
+- name: storage class templates
+  become: no
+  template: src="{{ item }}" dest="/home/devops/addons/storage-classes/{{ item }}"
+  with_items:
+    - storage-class-slow.yaml
+  register: templates
+
+- name: create storage classes
+  command: kubectl apply -f "/home/devops/addons/storage-classes/{{ item.item }}"
+  when: check.rc != 0 or item.changed
+  with_items: '{{templates.results}}'

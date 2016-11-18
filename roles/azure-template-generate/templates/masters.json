@@ -5,10 +5,10 @@
   },
   "variables": {
     "lbDomainName": "{{nameSuffix}}-api",
-    "lbPublicIPAddressName": "{{nameSuffix}}-api-pubip",
+    "lbPublicIPAddressName": "kubernetes-api-pubip",
     "lbPublicIPAddressType": "Static",
     "lbPublicIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('lbPublicIPAddressName'))]",
-    "lbName": "kubernetes",
+    "lbName": "kubernetes-api",
     "lbID": "[resourceId('Microsoft.Network/loadBalancers',variables('lbName'))]",
 
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', '{{virtualNetworkName}}')]",
@@ -130,9 +130,7 @@
       "apiVersion": "{{apiVersion}}",
       "properties": {
         "availabilitySet": {
-          // please see README.md why this is currently set to availabilitySetMinions instead of availabilitySetMasters
-          //"id": "[resourceId('Microsoft.Compute/availabilitySets', '{{availabilitySetMasters}}')]"
-          "id": "[resourceId('Microsoft.Compute/availabilitySets', '{{availabilitySetMinions}}')]"
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', '{{availabilitySetMasters}}')]"
         },
         "hardwareProfile": {
           "vmSize": "{{mastersVmSize}}"
@@ -161,19 +159,9 @@
               "uri": "[concat('http://','{{storageAccountName}}','.blob.core.windows.net/vhds/ma-{{nameSuffix}}-{{i}}.vhd')]"
             },
             "caching": "ReadWrite",
-            "createOption": "FromImage"
-          },
-          "dataDisks": [
-            {
-              "name": "datadisk1",
-              "diskSizeGB": "{{mastersDataDiskSize}}",
-              "lun": 0,
-              "vhd": {
-                "uri": "[concat('http://', '{{storageAccountName}}','.blob.core.windows.net/vhds/ma-{{nameSuffix}}-{{i}}-datadisk1.vhd')]"
-              },
-              "createOption": "Empty"
-            }
-          ]
+            "createOption": "FromImage",
+            "diskSizeGB": "{{mastersOsDiskSize}}"
+          }
         },
         "networkProfile": {
           "networkInterfaces": [

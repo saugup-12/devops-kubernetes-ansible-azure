@@ -1,2 +1,0 @@
-device: "/dev/sdc"
-fs_type: "xfs"

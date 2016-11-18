@@ -17,34 +17,34 @@ Setting up a Kubernetes cluster with this Ansible project consists of multiple s
 4. Please edit group_vars/all to include your custom admin password and your own ssh public key. Please also make sure the private key is known to the SSH Agent. I will probably automate this part later. You also have to choose a globally unique cluster name in "cluster_name"
 5. Before executing anything from this Ansible project, you'll have to source in the Azure credentials:
     ```
-    # source ./azure_creds.env
+    $ source ./azure_creds.env
     ```
 6. To generate the Azure Resource Templates and apply them to your Resource Group, call "./apply-rg.sh". This will take quite some time, so be patient please.
     ```
-    # ./apply-rg.sh
+    $ ./apply-rg.sh
     ```
 7. From now on, you can create and reset the Kubernetes cluster as often as you want
      ```
-    # ./deploy.sh
+    $ ./deploy.sh
     ```
     When you want to start from scratch (but without destroying the Azure resources), call ./reset.sh
     ```
-    # ./reset.sh
+    $ ./reset.sh
     ```
 8. To completely delete all Azure resources from the resource group, simply call ./clear-rg.sh
     ```
-    # ./clear-rg.sh
+    $ ./clear-rg.sh
     ```
 
 ## Accessing the API and UI after the cluster is running
 An Azure Load Balancer is set up to accept API connections and can be reached through the domain: <cluster_name>-api.<resource_location>.cloudapp.azure.com
 As anonymous auth is disabled, you can not directly access the UI. You'll have to use the kubectl proxy to access the UI (and other services) with a valid kubectl config. The deploy playbook (and thus ./deploy.sh) will copy/create this config in ./kubeconfigs/<cluster_name>/admin.conf. You should set the KUBECONFIG environment variable to use this config:
 ```
-# export KUBECONFIG=$(pwd)/kubeconfigs/<cluster_name>/admin.conf
+$ export KUBECONFIG=$(pwd)/kubeconfigs/<cluster_name>/admin.conf
 ```
 An example export command line is printed at the end of ./deploy.sh execution. You can now use kubectl as you are used to. To start the kubectl proxy, call:
 ```
-# kubectl proxy
+$ kubectl proxy
 Starting to serve on 127.0.0.1:8001
 ```
 You can now access the cluster addons though these URLs:
@@ -61,9 +61,9 @@ Currently the Ansible project will install the latest RPMs found in the official
    
 Additionally, you'll need to build and push the hyperkube Docker image after building Kubernetes. When you're inside the Kubernetes tree, you can do it this way:
 ```
-# cd cluster/images/hyperkube
-# make build REGISTRY=<myregistry> VERSION=<myversion>
-# docker push <myregistry>/hyperkube-amd64:<myversion>
+$ cd cluster/images/hyperkube
+$ make build REGISTRY=<myregistry> VERSION=<myversion>
+$ docker push <myregistry>/hyperkube-amd64:<myversion>
 ```
 After pushing the image, you'll have to modify the Ansible variable "hyperkube_image" in group_vars/all to match you custom built and pushed image.
 
@@ -78,15 +78,31 @@ The Ansible role "addons" installs some common addons that I thought may be usef
 3. fluentd-elasticsearch
 4. weave-net (currently disabled as we don't need it thanks to the Azure cloud provider)
 5. weave-scope (currelty disable due to the overhead)
+6. registry
 
 I plan to make addon installation more flexible and configurable.
 
+## Accesing the registry
+A docker registry is deployed into the cluster which can be accessed from inside the cluster through "localhost:5000/<namespace>/<image>:<tag>". Internally, a registry-proxy is deployed as a DaemonSet to make the registry available on every node on port 5000.
+
+To access the registry from outside of the cluster, you'll have to set up port forwarding with kubectl:
+```console
+$ POD=$(kubectl get pods --namespace kube-system -l k8s-app=kube-registry \
+            -o template --template '{{range .items}}{{.metadata.name}} {{.status.phase}}{{"\n"}}{{end}}' \
+            | grep Running | head -1 | cut -f1 -d' ')
+
+$ kubectl port-forward --namespace kube-system $POD 5000:5000 &
+```
+
+Now the registry is also accessible from your local machine.
+
 ## Bastion host
 I chose to not assign public IPs to any of the masters or nodes as I want the cluster only to be accessible through Azure Load Balancers. Ansible however needs to establish SSH connections to all the hosts it wants to provision, thus a Bastion Host is introduced which is the only host with a public IP. The Ansible Role "bastion-ssh-conf" generates a SSH config which is then used for all connections. If you want to learn more about bastion hosts, please read http://blog.scottlowe.org/2015/12/24/running-ansible-through-ssh-bastion-host/
+
 ### Accessing the masters and nodes with ssh
 As you can not directly SSH into the masters and nodes, you'll have to use the same basion SSH config as Ansible does. To access the master for example, call:
 ```
-# ssh -A -F ssh-bastion.conf devops@10.0.4.4
+$ ssh -A -F ssh-bastion.conf devops@10.0.4.4
 ```
 The flag "-A" can be useful if you want to ssh into another node while you are already on the master for example.
 
@@ -107,7 +123,3 @@ Currently it is not possible to pass custom flags to the kubelet, apiserver and 
 ### ssl in hyperkube
 Currently, kubeadm does not correctly host mount certificates into the apiserver and controller-manager, resulting in errors when the cloud provider tries to communicate with the Azure Rest APIs. https://github.com/kubernetes/kubernetes/issues/36150 describes this issue.
 Until this is fixed in kubeadm, the "kubeadm-init" role removes the host mounts from the apiserver and controller-manager manifests.
-
-### Azure availability sets
-Currently, splitting up the masters and nodes into different availability sets is not supported as it makes the Azure cloud provider fail to add proper working load balancers.
-It was suggested in https://github.com/colemickens/azure-kubernetes-status/issues/11 to make the masters have the --register-schedulabe=false set, but this is not compatible to kubeadm as it requires a fully working cluster with at least one node (the master itself) to finish the setup. 

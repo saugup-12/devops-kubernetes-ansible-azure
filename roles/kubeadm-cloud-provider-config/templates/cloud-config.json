@@ -6,8 +6,9 @@
   "resourceGroup": "{{ lookup('env','AZURE_RESOURCE_GROUP') }}",
   "location": "{{ lookup('env','AZURE_LOCATION') }}",
 
-  "securityGroupName": "secgroup",
   "vnetName": "KubVNET",
-  "subnetName": "SubnetMINIONS",
-  "routeTableName": "routetable"
+  "securityGroupName": "secgroup",
+  "subnetName": "mi-subnet",
+  "routeTableName": "routetable",
+  "primaryAvailabilitySetName": "mi-avs"
 }

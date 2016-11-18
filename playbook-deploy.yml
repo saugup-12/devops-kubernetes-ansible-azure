@@ -14,7 +14,7 @@
   hosts: [role_master, role_minion]
   become: yes
   roles:
-    - docker-storage
+    - growpart
     - docker
     - kubernetes-install
     - kubernetes-local-build
@@ -37,7 +37,8 @@
   hosts: role_master[0]
   become: yes
   roles:
-    - addons
+    - kubernetes-storage-classes
+    - kubernetes-addons
 
 - name: copy kubeconfig
   hosts: role_master[0]

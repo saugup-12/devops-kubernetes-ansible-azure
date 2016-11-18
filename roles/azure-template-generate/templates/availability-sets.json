@@ -6,7 +6,7 @@
   "variables": {
   },
   "resources": [
-    /*{
+    {
       "type": "Microsoft.Compute/availabilitySets",
       "name": "{{availabilitySetMasters}}",
       "apiVersion": "{{apiVersion}}",
@@ -15,7 +15,7 @@
         "PlatformFaultDomainCount": "{{faultDomainCount}}",
         "PlatformUpdateDomainCount": "{{updateDomainCount}}"
       }
-    },*/
+    },
     {
       "type": "Microsoft.Compute/availabilitySets",
       "name": "{{availabilitySetMinions}}",

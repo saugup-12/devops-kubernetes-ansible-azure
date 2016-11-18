@@ -1,6 +1,7 @@
 ---
 #- include: weave-net.yml
+#- include: weave-scope.yml
 - include: fluentd-elasticsearch.yml
 - include: dashboard.yml
 - include: cluster-monitoring.yml
-#- include: weave-scope.yml
+- include: registry.yml

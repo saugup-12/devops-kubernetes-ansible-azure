@@ -1,6 +1,6 @@
-hyperkube_image: ablock/hyperkube-amd64:1.5-azure-5
+hyperkube_image: ablock/hyperkube-amd64:1.5-azure-7
 local_kubernetes_src: "{{playbook_dir}}/../kubernetes"
-kube_component_loglevel: "--v=1"
+kube_component_loglevel: "--v=2"
 
 # Azure CIDRs
 azure_vnet_cidr: 10.0.0.0/8

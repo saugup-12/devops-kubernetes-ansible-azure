@@ -1,0 +1,2 @@
+cluster_registry_disk_size: 1000Gi
+cluster_registry_nodeport: 5000

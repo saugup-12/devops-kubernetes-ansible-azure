@@ -1,0 +1,20 @@
+---
+- name: install epel-release repo
+  package: name=epel-release state=present
+
+- name: install growpart
+  package: name=cloud-utils-growpart state=present
+
+- name: check if growpart needs to be run
+  command: growpart -N /dev/sda 1
+  failed_when: False
+  changed_when: "'NOCHANGE:' not in g.stdout"
+  register: g
+
+- name: run growpart
+  command: growpart /dev/sda 1
+  when: g.changed
+
+- name: run xfs_growfs
+  command: xfs_growfs /dev/sda1
+  when: g.changed
