@@ -94,6 +94,8 @@ $ POD=$(kubectl get pods --namespace kube-system -l k8s-app=kube-registry \
 $ kubectl port-forward --namespace kube-system $POD 5000:5000 &
 ```
 
+As an alternative, use ./registry-local-access.sh, which does all this for you.
+
 Now the registry is also accessible from your local machine.
 
 ## Bastion host
