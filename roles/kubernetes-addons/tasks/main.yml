@@ -4,4 +4,5 @@
 - include: fluentd-elasticsearch.yml
 - include: dashboard.yml
 - include: cluster-monitoring.yml
+- include: traefik-ingress-controller.yml
 - include: registry.yml

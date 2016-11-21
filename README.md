@@ -77,8 +77,9 @@ The Ansible role "addons" installs some common addons that I thought may be usef
 2. dashboard
 3. fluentd-elasticsearch
 4. weave-net (currently disabled as we don't need it thanks to the Azure cloud provider)
-5. weave-scope (currelty disable due to the overhead)
+5. weave-scope (currently disabled due to the overhead)
 6. registry
+7. traefik-ingress-controller
 
 I plan to make addon installation more flexible and configurable.
 
