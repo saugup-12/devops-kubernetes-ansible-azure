@@ -138,14 +138,14 @@ The flag "-A" can be useful if you want to ssh into another node while you are a
 
 ## Limitations and Hacks
 
-## Cluster Scaling
+### Cluster Scaling
 Cluster scaling is currently not implemented. You could of course change the minionsCount variable in roles/azure-template-generate/defaults/main.yml and re-run 
 
     ./apply-rg.sh and ./deploy.sh
 
 but its not recomended. Especially when it comes to downscaling. Personally I don't like the idea that I'd have no control about which node gets removed. Our long term goal is to implement roles and scripts to add and remove groups of nodes to/from the cluster.
 
-## High Availability
+### High Availability
 High Availability (HA) is currently not implemented. 
 
 Even if you change the *mastersCount* variable, it won't make your cluster HA. The problem currently is, that "kubeadm" does not support HA at the moment and thus I'm waiting for support of it. We might come up with a solution/hack which gives HA by simply copying the master configuration after the initial "kubeadm init", but again its not the recomended way ... but it would serve the purpose until an integrated solution in kubeadm arrives.
