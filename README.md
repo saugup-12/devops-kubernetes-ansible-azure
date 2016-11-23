@@ -22,22 +22,27 @@ Setting up a Kubernetes cluster with a Ansible project consists of multiple step
 3.  Generate a backup of *azure_creds.env.example*, rename it to *azure_creds.env* and update the file with your SP credentials. Additionally add the [*resource group name*](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview) and [*resource location*](https://docs.microsoft.com/en-gb/azure/azure-resource-manager/resource-group-move-resources).
 4. Edit [*group_vars/all*](http://docs.ansible.com/ansible/playbooks_variables.html) to include your custom admin password and your own ssh public key. Please also make sure the private key is known to the SSH Agent. That probably might be automated at a later stage. You also have to choose a globally unique cluster name in *cluster_name*
 5. Before executing anything from this Ansible project, you'll have to source in the Azure credentials:
+
     ```
     $ source ./azure_creds.env
     ```
 6. To generate the [Azure Resource Templates](https://github.com/Azure/azure-quickstart-templates) and apply them to your Resource Group, call "./apply-rg.sh". This will take quite some time, so be patient please.
+
     ```
     $ ./apply-rg.sh
     ```
 7. From now on, you can create and reset the Kubernetes cluster as often as you want
+
      ```
     $ ./deploy.sh
     ```
     When you want to start from scratch (but without destroying the Azure resources), call ./reset.sh
+    
     ```
     $ ./reset.sh
     ```
 8. To completely delete all Azure resources from the resource group, simply call ./clear-rg.sh
+
     ```
     $ ./clear-rg.sh
     ```
