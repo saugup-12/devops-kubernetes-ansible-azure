@@ -62,9 +62,9 @@ Starting to serve on 127.0.0.1:8001
 ```
 You can now access the cluster addons though these URLs:
  
-* [Kubernetes Dashboard](http://localhost:8001/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard)
-* [Kibana Logging](http://localhost:8001/api/v1/proxy/namespaces/kube-system/services/kibana-logging)
-* [Grafana Monitoring](http://localhost:8001/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana)
+* [Local Kubernetes Dashboard](http://localhost:8001/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard)
+* [Local Kibana Logging](http://localhost:8001/api/v1/proxy/namespaces/kube-system/services/kibana-logging)
+* [Local Grafana Monitoring](http://localhost:8001/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana)
 
 Please not that it may take some time until all addons are ready after cluster startup. There are a lot of container images which need to be fetched ...
 
