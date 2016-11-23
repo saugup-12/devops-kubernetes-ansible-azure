@@ -136,6 +136,8 @@ $ ssh -A -F ssh-bastion.conf devops@10.0.4.4
 ```
 The flag "-A" can be useful if you want to ssh into another node while you are already on the master for example.
 
+## Limitations and Hacks
+
 ## Cluster Scaling
 Cluster scaling is currently not implemented. You could of course change the minionsCount variable in roles/azure-template-generate/defaults/main.yml and re-run 
 
@@ -147,8 +149,6 @@ but its not recomended. Especially when it comes to downscaling. Personally I do
 High Availability (HA) is currently not implemented. 
 
 Even if you change the *mastersCount* variable, it won't make your cluster HA. The problem currently is, that "kubeadm" does not support HA at the moment and thus I'm waiting for support of it. We might come up with a solution/hack which gives HA by simply copying the master configuration after the initial "kubeadm init", but again its not the recomended way ... but it would serve the purpose until an integrated solution in kubeadm arrives.
-
-## Limitations and Hacks
 
 ### kubeadm flags for kubelet, apiserver and controller-manager
 Currently it is not possible to pass custom flags to the 
