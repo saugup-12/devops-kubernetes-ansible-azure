@@ -1,4 +1,4 @@
-hyperkube_image: ablock/hyperkube-amd64:1.5-azure-7
+hyperkube_image: ablock/hyperkube-amd64:1.5-azure-8
 local_kubernetes_src: "{{playbook_dir}}/../kubernetes"
 kube_component_loglevel: "--v=2"
 
@@ -18,3 +18,9 @@ cluster_api_dns: "{{cluster_name}}-api.{{lookup('env','AZURE_LOCATION')}}.clouda
 
 azure_admin_password: "x2cli&mC&$I$"
 azure_ssh_pubkey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDLRzcxbsFDdEibiyXCSdIFh7bKbXso1NqlKjEyPTptf3aBXHEhVil0lJRjGpTlpfTy7PHvXFbXIOCdv9tOmeH1uxWDDeZawgPFV6VSZ1QneCL+8bxzhjiCn8133wBSPZkN8rbFKd9eEUUBfx8ipCblYblF9FcidylwtMt5TeEmXk8yRVkPiCuEYuDplhc2H0f4PsK3pFb5aDVdaDT3VeIypnOQZZoUxHWqm6ThyHrzLJd3SrZf+RROFWW1uInIDf/SZlXojczUYoffxgT1lERfOJCHJXsqbZWugbxQBwqsVsX59+KPxFFo6nV88h3UQr63wbFx52/MXkX4WrCkAHzN ablock-vwfs@dell-lappy"
+
+# kube-lego/letsencrypt settings
+# By default, the letsencrypt staging server is used.
+#kube_lego_api_url: https://acme-v01.api.letsencrypt.org/directory
+kube_lego_api_url: https://acme-staging.api.letsencrypt.org/directory
+kube_lego_email: cert@example.com

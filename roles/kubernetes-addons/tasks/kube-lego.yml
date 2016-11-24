@@ -1,0 +1,23 @@
+---
+- name: check if kube-lego is installed
+  command: kubectl --namespace kube-lego describe deploy kube-lego
+  register: check
+  changed_when: False
+  failed_when: False
+
+- file: path=/home/devops/addons/kube-lego state=directory
+  become: no
+
+- name: kube-lego templates
+  become: no
+  template: src="kube-lego/{{ item }}" dest="/home/devops/addons/kube-lego/{{ item }}"
+  with_items:
+    - 00-namespace.yaml
+    - configmap.yaml
+    - deployment.yaml
+  register: templates
+
+- name: install kube-lego
+  command: kubectl apply -f "/home/devops/addons/kube-lego/{{ item.item }}"
+  when: check.rc != 0 or item.changed
+  with_items: '{{templates.results}}'
