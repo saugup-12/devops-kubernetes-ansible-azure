@@ -4,12 +4,12 @@
 The target of this project is to deploy and maintain a [Kubernetes Cluster](http://kubernetes.io/) on [Azure](https://azure.microsoft.com/de-de/), using [CentOS7.2](https://www.centos.org/) as the Operating System and [Ansible](https://www.ansible.com/) & [kubeadm]((http://kubernetes.io/docs/admin/kubeadm/)) for deployment tasks.
 
 ## Getting started
-Setting up a Kubernetes cluster with a Ansible project consists of multiple steps. The following text outlines the steps necesarry
+Setting up a Kubernetes cluster with this Ansible project consists of multiple steps. The following text outlines the steps necessary
 
 1. Create an Azure Resource Group inside of your Azure subscription. Please read through the Azure docs or contact your Azure administrator for this.
-2. Add a *Azure Service Principal Account* and appropriate credentials for the SP. Please read through related [*Azure documentation*](https://azure.microsoft.com/en-us/documentation/articles/resource-group-create-service-principal-portal/) for the details. The SP is used to setup the Azure resources with Azure Resource Templates and is also later used by the Kubernetes Cloud Provider to modify resources as needed. It includes e.g. Routing Table entries, Load Balancers, ...
-3.  Generate a backup of *azure_creds.env.example*, rename it to *azure_creds.env* and update the file with your SP credentials. Additionally add the [*resource group name*](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview) and [*resource location*](https://docs.microsoft.com/en-gb/azure/azure-resource-manager/resource-group-move-resources).
-4. Edit [*group_vars/all*](http://docs.ansible.com/ansible/playbooks_variables.html) to include your custom admin password and your own ssh public key. Please also make sure the private key is known to the SSH Agent. That probably might be automated at a later stage. You also have to choose a globally unique cluster name in *cluster_name*
+2. Add a *Azure Service Principal Account* and appropriate credentials for the SP. Please read through related [*Azure documentation*](https://azure.microsoft.com/en-us/documentation/articles/resource-group-create-service-principal-portal/) for the details. The SP is used to setup the Azure resources with Azure Resource Templates and is also later used by the Kubernetes Cloud Provider to modify resources as needed. This includes modifications to Routing Table entries, Load Balancers, Storage Accounts, and maybe more.
+3.  Make a copy of azure_creds.env.example, name it azure_creds.env and put your SP credentials into this file. You will also need to add the resource group name and resource location.
+4. Edit "group_vars/all" to include your custom admin password and your own ssh public key. Please also make sure the private key is known to the SSH Agent. That probably might be automated at a later stage. You also have to choose a globally unique cluster name in *cluster_name*
 5. Before executing anything from this Ansible project, you'll have to source in the Azure credentials:
 
     ```
@@ -56,13 +56,13 @@ Starting to serve on 127.0.0.1:8001
 ```
 You can now access the cluster addons though these URLs:
  
-* [Local Kubernetes Dashboard](http://localhost:8001/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard)
-* [Local Kibana Logging](http://localhost:8001/api/v1/proxy/namespaces/kube-system/services/kibana-logging)
-* [Local Grafana Monitoring](http://localhost:8001/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana)
+* [Kubernetes Dashboard](http://localhost:8001/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard)
+* [Kibana Logging](http://localhost:8001/api/v1/proxy/namespaces/kube-system/services/kibana-logging)
+* [Grafana Monitoring](http://localhost:8001/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana)
 
-Please not that it may take some time until all addons are ready after cluster startup. There are a lot of container images which need to be fetched ...
+Please note that it may take some time until all addons are ready after cluster startup. There are a lot of container images which need to be fetched ...
 
-## Kubernetes 1.5 and a local Kubernetes build 
+## Kubernetes 1.5 and local Kubernetes builds 
 At the time of the initial version of this project, Kubernetes 1.5. was not released yet. But as latest Azure fixes and features (e.g. Dynamic Disk Provisioning) and kubeadm features+fixes were only merged into the current master branch, We had to use a custom built version of Kubernetes.
 
 Currently the Ansible project will install the latest RPMs found in the official Kubernetes repos, and then overwrite the binaries with a custom built version of Kubernetes. This custom built version is expected to be located relative to the Ansible project in "../kubernetes". This means that you'll have to place the latest Kubernetes master at this location and then build it either with "make" (requires a working Golang environment) or "make release-skip-tests" (Does not require a working Golang environment).
@@ -78,16 +78,16 @@ After pushing the image, you'll have to modify the Ansible variable "hyperkube_i
 ## Azure Cloud Provider Support
 The Azure cloud provider as found in 1.5. (as of writing, not released yet) is fully supported and configured. This includes Persistent Volumes, Dynamic Disk Provisioning and Azure Load Balancers. It also includes networking based on Azure route tables, which means that you do NOT have to install Weave or any other network addon.
 
-## Addon's
-The Ansible role "addons" installs some common addons that I thought may be useful. A role is the Ansible way of bundling automation content and making it reusable. The manifests found in the template directory are copied from the Kubernetes repository.
+## Addons
+The Ansible role "addons" installs some common addons that we thought may be useful. The manifests found in the template directory are copied from the Kubernetes repository.
 
-1. Cluster-monitoring
-2. Dashboard
-3. Fluentd-elasticsearch
-4. Weave-net (currently disabled as we don't need it thanks to the Azure cloud provider)
-5. Weave-scope (currently disabled due to the overhead)
-6. Registry
-7. Traefik-ingress-controller
+1. cluster-monitoring
+2. dashboard
+3. fluentd-elasticsearch
+4. weave-net (currently disabled as we don't need it thanks to the Azure cloud provider)
+5. weave-scope (currently disabled due to the overhead)
+6. registry
+7. traefik-ingress-controller
 
 Its planed to make the addon installation more flexible and configurable.
 
@@ -110,13 +110,16 @@ $ kubectl port-forward --namespace kube-system $POD 5000:5000 &
 
 As an alternative, use 
 
-     ./registry-local-access.sh
+```console
+$ ./registry-local-access.sh
+```
+
 which does all this for you.
 
 Now the registry is also accessible from your local machine.
 
 ## Bastion Host
-I chose to not assign public IPs to any of the masters or nodes as I want the cluster only to be accessible through Azure Load Balancers. Ansible however needs to establish SSH connections to all the hosts it wants to provision, thus a Bastion Host is introduced which is the only host with a public IP. The Ansible Role "bastion-ssh-conf" generates a SSH config which is then used for all connections. If you want to learn more about bastion hosts, please read "[Running Ansible Through an SSH Bastion Host](http://blog.scottlowe.org/2015/12/24/running-ansible-through-ssh-bastion-host/)"
+We chose to not assign public IPs to any of the masters or nodes as I want the cluster only to be accessible through Azure Load Balancers. Ansible however needs to establish SSH connections to all the hosts it wants to provision, thus a Bastion Host is introduced which is the only host with a public IP. The Ansible Role "bastion-ssh-conf" generates a SSH config which is then used for all connections. If you want to learn more about bastion hosts, please read [Running Ansible Through an SSH Bastion Host](http://blog.scottlowe.org/2015/12/24/running-ansible-through-ssh-bastion-host/)
 
 ### Accessing the Masters and Nodes with SSH
 As you can not directly SSH into the masters and nodes, you'll have to use the same basion SSH config as Ansible does. To access the master for example, call:
@@ -147,8 +150,8 @@ Currently it is not possible to pass custom flags to the
 
 There are multiple open issues in the Kubernetes repo and hopefully these will be adressed soon. Until then, we use a custom solution which injects the needed flags into the services.
 
-1. For the *kubelet*, add a *systemd* dropin with custom flags. These flags are mainly used to correctly pass the cloud provider to the kubelet and to setup networking modes compatible with the Azure cloud provider.
-2. For the *apiserver* and *controller-manager*, inject custom flags into their manifests directly after "kubeadm init" generates them. This solution relies on the kubelet to immediately restart/recreate the PODs of the apiserver and controller-manager.    
+1. For the *kubelet*, a systemd dropin with custom flags is added. These flags are mainly used to correctly pass the cloud provider to the kubelet and to setup networking modes compatible with the Azure cloud provider.
+2. For the *apiserver* and *controller-manager*, we inject custom flags into their manifests directly after "kubeadm init" generates them. This solution relies on the kubelet to immediately restart/recreate the PODs of the apiserver and controller-manager.    
 
 ### SSL in [Hyperkube](https://github.com/kubernetes/kubernetes/blob/master/cluster/images/hyperkube/README.md)
 Currently, kubeadm does not correctly host mount certificates into the *apiserver* and *controller-manager*, resulting in errors when the cloud provider tries to communicate with the Azure Rest APIs. [Issue 36150](https://github.com/kubernetes/kubernetes/issues/36150) describes this in detail.
