@@ -4,5 +4,6 @@
 - include: fluentd-elasticsearch.yml
 - include: dashboard.yml
 - include: cluster-monitoring.yml
-- include: traefik-ingress-controller.yml
+- include: nginx-ingress-controller.yml
+- include: kube-lego.yml
 - include: registry.yml

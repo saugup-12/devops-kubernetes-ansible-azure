@@ -87,9 +87,18 @@ The Ansible role "addons" installs some common addons that we thought may be use
 4. weave-net (currently disabled as we don't need it thanks to the Azure cloud provider)
 5. weave-scope (currently disabled due to the overhead)
 6. registry
-7. traefik-ingress-controller
+7. nginx-ingress-controller
 
 Its planed to make the addon installation more flexible and configurable.
+
+## Ingress Controller
+A [Nginx Ingress Controller](https://github.com/kubernetes/contrib/tree/master/ingress/controllers/nginx) is deployed as an Addon to the cluster. It will expose itself through a Kubernetes LoadBalancer Service and can thus be accessed from the outside world.
+
+This means that you can deploy [Ingresses](http://kubernetes.io/docs/user-guide/ingress/) to the cluster out of the box. You'll however need to create appropriate DNS records manually, e.g. by using the Azure DNS Zones. The records must point to the Ingress Load Balancer IP address, which you can find in the Azure Portal.
+
+Automatic SSL Certificate generation is also supported with the help of [kube-lego](https://github.com/jetstack/kube-lego). By default, the letsencrypt staging server is used to generate certificates, but you can modify this in group_vars/all.
+
+Please check the [kube-lego echoserver](https://github.com/jetstack/kube-lego/tree/master/examples/nginx/echoserver) example for a good example.
 
 ## Accesing the Registry
 A docker registry is deployed into the cluster which can be accessed from inside the cluster through

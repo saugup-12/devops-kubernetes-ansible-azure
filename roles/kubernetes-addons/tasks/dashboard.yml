@@ -8,7 +8,7 @@
 - file: path=/home/devops/addons/dashboard state=directory
   become: no
 
-- name: logging templates
+- name: dashboard templates
   become: no
   template: src="dashboard/{{ item }}" dest="/home/devops/addons/dashboard/{{ item }}"
   with_items:
@@ -16,7 +16,7 @@
     - dashboard-service.yaml
   register: templates
 
-- name: install logging
+- name: install dashboard
   command: kubectl apply -f "/home/devops/addons/dashboard/{{ item.item }}"
   when: check.rc != 0 or item.changed
   with_items: '{{templates.results}}'

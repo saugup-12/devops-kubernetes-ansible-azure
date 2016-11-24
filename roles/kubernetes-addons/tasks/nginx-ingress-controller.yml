@@ -1,0 +1,26 @@
+---
+- name: check if nginx-ingress-controller is installed
+  command: kubectl --namespace nginx-ingress describe deploy nginx
+  register: check
+  changed_when: False
+  failed_when: False
+
+- file: path=/home/devops/addons/nginx-ingress-controller state=directory
+  become: no
+
+- name: nginx-ingress-controller templates
+  become: no
+  template: src="nginx-ingress-controller/{{ item }}" dest="/home/devops/addons/nginx-ingress-controller/{{ item }}"
+  with_items:
+    - 00-namespace.yaml
+    - configmap.yaml
+    - default-deployment.yaml
+    - default-service.yaml
+    - deployment.yaml
+    - service.yaml
+  register: templates
+
+- name: install nginx-ingress-controller
+  command: kubectl apply -f "/home/devops/addons/nginx-ingress-controller/{{ item.item }}"
+  when: check.rc != 0 or item.changed
+  with_items: '{{templates.results}}'
