@@ -3,17 +3,6 @@
 ## What it is this?
 The target of this project is to deploy and maintain a [Kubernetes Cluster](http://kubernetes.io/) on [Azure](https://azure.microsoft.com/de-de/), using [CentOS7.2](https://www.centos.org/) as the Operating System and [Ansible](https://www.ansible.com/) & [kubeadm]((http://kubernetes.io/docs/admin/kubeadm/)) for deployment tasks.
 
-## Why not use any of the existing solutions?
-Also, we prefer a solution where we have full overview and control about what happens. We want to see the logs while stuff is installed and initialized. This means that solutions which put responsibility for all this onto the VM (like only deploying a script which then downloads, installs and configures everything) were not viable candidates. 
-
-Setting up and running our Kubernetes cluster has proofed too often that things could go wrong and that debugging and intervention isthen required. We beleive its a lot simpler when [Ansible](https://www.ansible.com/) is used.
-
-[kubeadm](http://kubernetes.io/docs/admin/kubeadm/) seems to become the standard in cluster deployment. It makes deployment a lot easier, especially when it comes to certificate management.
-
-Also, we prefer a solution were we have full overview and control about what happens. We should be able to see logs while stuff is installed and initialized. This means that solutions which put responsibility for all this onto the VM (like only deploying a script which then downloads, installs and configures everything) were not viable candidates for us.
-
-Setting up and running a Kubernetes cluster has shown too often that things can go wrong and that debugging and intervention is required, something that is a lot simpler when Ansible is used.
-
 ## Getting started
 Setting up a Kubernetes cluster with a Ansible project consists of multiple steps. The following text outlines the steps necesarry
 
