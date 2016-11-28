@@ -16,7 +16,7 @@ This project was originally developed at [Volkswagen Financial Services](http://
 
 ## Author of this repo
 
-* Alexander Block
+* [Alexander Block](http://github.com/codablock)
 
 We thank all of our [contributors](https://github.com/vwfs/devops-kubernetes-azure/graphs/contributors)!
 Contributions from other people are highly welcome.
