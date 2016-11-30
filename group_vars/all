@@ -1,6 +1,13 @@
-hyperkube_image: ablock/hyperkube-amd64:1.5-azure-8
+# Azur subscription
+azure_subscription_id: "{{lookup('env','AZURE_SUBSCRIPTION_ID')}}"
+azure_resource_group: "{{lookup('env','AZURE_RESOURCE_GROUP')}}"
+
+hyperkube_image: ablock/hyperkube-amd64:1.5-azure-9
 local_kubernetes_src: "{{playbook_dir}}/../kubernetes"
 kube_component_loglevel: "--v=2"
+
+masters_count: 1
+minions_count: 4
 
 # Azure CIDRs
 azure_vnet_cidr: 10.0.0.0/8

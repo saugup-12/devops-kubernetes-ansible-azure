@@ -1,6 +1,7 @@
 .idea
 azure_creds.env
-ssh-bastion.conf
-ansible-callback-plugins/human_log.pyc
+/ssh-bastion.conf
+*.pyc
 generated-templates
 kubeconfigs
+*.retry

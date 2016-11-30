@@ -140,7 +140,7 @@ The flag "-A" can be useful if you want to ssh into another node while you are a
 ## Limitations and Hacks
 
 ### Cluster Scaling
-Cluster scaling is currently not implemented. You could of course change the minionsCount variable in roles/azure-template-generate/defaults/main.yml and re-run 
+Cluster scaling is currently not implemented. You could of course change the minions_count variable in *group_vars/all* and re-run 
 
     ./apply-rg.sh and ./deploy.sh
 
