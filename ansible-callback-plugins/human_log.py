@@ -38,8 +38,8 @@ class CallbackModule(CallbackBase):
 
     def _format_output(self, output):
         # Strip unicode
-        if type(output) == unicode:
-            output = output.encode('ascii', 'replace')
+        #if type(output) == unicode:
+        #    output = output.encode('ascii', 'replace')
 
         # If output is a dict
         if type(output) == dict:
