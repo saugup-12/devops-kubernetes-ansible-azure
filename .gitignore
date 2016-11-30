@@ -4,3 +4,4 @@ azure_creds.env
 *.pyc
 generated-templates
 kubeconfigs
+*.retry
