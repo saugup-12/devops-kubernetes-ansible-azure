@@ -89,7 +89,7 @@
     {
       "apiVersion": "{{apiVersion}}",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "ma-{{nameSuffix}}-{{i}}-nic",
+      "name": "master-{{i}}-nic",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[concat('Microsoft.Network/loadBalancers/', variables('lbName'))]"
@@ -119,10 +119,10 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "ma-{{nameSuffix}}-{{i}}",
+      "name": "master-{{i}}",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Network/networkInterfaces/', 'ma-{{nameSuffix}}-{{i}}-nic')]"
+        "[concat('Microsoft.Network/networkInterfaces/', 'master-{{i}}-nic')]"
       ],
       "tags": {
         "role": "master"
@@ -136,7 +136,7 @@
           "vmSize": "{{mastersVmSize}}"
         },
         "osProfile": {
-          "computerName": "ma-{{nameSuffix}}-{{i}}",
+          "computerName": "master-{{i}}",
           "adminUsername": "{{adminUserName}}",
           "adminPassword": "{{adminPassword}}",
           "linuxConfiguration": {
@@ -156,7 +156,7 @@
           "osDisk": {
             "name": "ma{{nameSuffix}}{{i}}",
             "vhd": {
-              "uri": "[concat('http://','{{storageAccountName}}','.blob.core.windows.net/vhds/ma-{{nameSuffix}}-{{i}}.vhd')]"
+              "uri": "[concat('http://','{{storageAccountName}}','.blob.core.windows.net/vhds/master-{{i}}.vhd')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage",
@@ -166,7 +166,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', 'ma-{{nameSuffix}}-{{i}}-nic')]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', 'master-{{i}}-nic')]"
             }
           ]
         }

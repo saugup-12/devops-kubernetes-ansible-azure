@@ -8,7 +8,7 @@
 
   "vnetName": "KubVNET",
   "securityGroupName": "secgroup",
-  "subnetName": "mi-subnet",
+  "subnetName": "minion-subnet",
   "routeTableName": "routetable",
-  "primaryAvailabilitySetName": "mi-avs"
+  "primaryAvailabilitySetName": "minion-avs"
 }

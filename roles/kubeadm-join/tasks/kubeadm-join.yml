@@ -1,5 +1,4 @@
 ---
-#- name: read token
 
 - set_fact:
     first_master: "{{ hostvars[groups['role_master'][0]]['ansible_host'] }}"

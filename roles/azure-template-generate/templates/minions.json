@@ -12,7 +12,7 @@
     {
       "apiVersion": "{{apiVersion}}",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "mi-{{nameSuffix}}-{{i}}-nic",
+      "name": "minion-{{i}}-nic",
       "location": "[resourceGroup().location]",
       "properties": {
         "ipConfigurations": [
@@ -34,10 +34,10 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "mi-{{nameSuffix}}-{{i}}",
+      "name": "minion-{{i}}",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Network/networkInterfaces/', 'mi-{{nameSuffix}}-{{i}}-nic')]"
+        "[concat('Microsoft.Network/networkInterfaces/', 'minion-{{i}}-nic')]"
       ],
       "tags": {
         "role": "minion"
@@ -51,7 +51,7 @@
           "vmSize": "{{minionsVmSize}}"
         },
         "osProfile": {
-          "computerName": "mi-{{nameSuffix}}-{{i}}",
+          "computerName": "minion-{{i}}",
           "adminUsername": "{{adminUserName}}",
           "adminPassword": "{{adminPassword}}",
           "linuxConfiguration": {
@@ -71,7 +71,7 @@
           "osDisk": {
             "name": "mi{{nameSuffix}}{{i}}",
             "vhd": {
-              "uri": "[concat('http://','{{storageAccountName}}','.blob.core.windows.net/vhds/mi-{{nameSuffix}}-{{i}}.vhd')]"
+              "uri": "[concat('http://','{{storageAccountName}}','.blob.core.windows.net/vhds/minion-{{i}}.vhd')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage",
@@ -81,7 +81,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', 'mi-{{nameSuffix}}-{{i}}-nic')]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', 'minion-{{i}}-nic')]"
             }
           ]
         }

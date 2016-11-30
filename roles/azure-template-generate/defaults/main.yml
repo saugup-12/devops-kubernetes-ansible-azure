@@ -1,21 +1,18 @@
-azure_subscription_id: "{{lookup('env','AZURE_SUBSCRIPTION_ID')}}"
-azure_resource_group: "{{lookup('env','AZURE_RESOURCE_GROUP')}}"
-
 apiVersion: "2015-06-15"
 
 virtualNetworkName: "KubVNET"
 
 subnetAdminName: "ad-subnet"
-subnetMastersName: "ma-subnet"
-subnetMinionsName: "mi-subnet"
+subnetMastersName: "master-subnet"
+subnetMinionsName: "minion-subnet"
 
 routeTableName: "routetable"
 securityGroupName: "secgroup"
 
 nameSuffix: "{{cluster_name}}"
 
-availabilitySetMasters: "ma-avs"
-availabilitySetMinions: "mi-avs"
+availabilitySetMasters: "master-avs"
+availabilitySetMinions: "minion-avs"
 
 faultDomainCount: 3
 updateDomainCount: 10
@@ -26,11 +23,11 @@ bastionIPAddressName: bastion-pubip
 
 mastersVmSize: Standard_A2
 mastersOsDiskSize: 1000
-mastersCount: 1
+mastersCount: "{{masters_count}}"
 
 minionsVmSize: Standard_A2
 minionsOsDiskSize: 1000
-minionsCount: 4
+minionsCount: "{{minions_count}}"
 
 
 adminUserName: devops
