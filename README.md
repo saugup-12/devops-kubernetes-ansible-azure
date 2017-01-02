@@ -1,3 +1,7 @@
+# DEPRECATED!
+This repo is deprecated. Please use [Kargo](https://github.com/kubernetes-incubator/kargo) instead.
+All Azure specific code was contributed and migrated to Kargo.
+
 # kubernetes-ansible-azure
 
 ## What it is this?
